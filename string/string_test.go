@@ -5,7 +5,7 @@ import "testing"
 func TestIsEmpty(t *testing.T) {
 	tests := []struct {
 		name string
-		arg string
+		arg  string
 		want bool
 	}{
 		{name: "non-empty", arg: "lorem ipsum", want: false},
@@ -25,7 +25,7 @@ func TestIsEmpty(t *testing.T) {
 func TestIsValidUrl(t *testing.T) {
 	tests := []struct {
 		name string
-		arg string
+		arg  string
 		want bool
 	}{
 		{name: "empty", arg: "", want: false},
