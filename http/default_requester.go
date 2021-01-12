@@ -25,6 +25,10 @@ func NewDefaultRequester(ctx context.Context, debug bool) *defaultRequester {
 	}
 }
 
+func (r *defaultRequester) SetHost(host string) {
+	r.host = host
+}
+
 func (r *defaultRequester) Do(q Request, goodCodes []int) (int, []byte, error) {
 	if q == nil {
 		return 0, nil, fmt.Errorf("'IRequest' must not be a nil")
