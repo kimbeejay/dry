@@ -18,9 +18,10 @@ type defaultRequester struct {
 }
 
 //goland:noinspection GoUnusedExportedFunction
-func NewDefaultRequester(ctx context.Context, debug bool) *defaultRequester {
+func NewDefaultRequester(ctx context.Context, host string, debug bool) *defaultRequester {
 	return &defaultRequester{
 		ctx:   ctx,
+		host:  host,
 		debug: debug,
 	}
 }
