@@ -3,7 +3,7 @@ package http
 import "net/url"
 
 type Requester interface {
-	Do(Request, []int) (int, []byte, error)
+	Do(Request, []int) (Response, error)
 
 	DebugLog(...string)
 

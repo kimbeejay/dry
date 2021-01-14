@@ -4,12 +4,13 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	"net/http"
-	"net/url"
-
 	"github.com/golang/glog"
 	dString "github.com/kimbeejay/dry/string"
+	"net/http"
+	"net/url"
 )
+
+const DefaultRequesterCookies = "DefaultRequester.Ctx.Cookies"
 
 type defaultRequester struct {
 	ctx   context.Context
@@ -30,22 +31,22 @@ func (r *defaultRequester) SetHost(host string) {
 	r.host = host
 }
 
-func (r *defaultRequester) Do(q Request, goodCodes []int) (int, []byte, error) {
+func (r *defaultRequester) Do(q Request, goodCodes []int) (Response, error) {
 	if q == nil {
-		return 0, nil, fmt.Errorf("'IRequest' must not be a nil")
+		return nil, fmt.Errorf("'IRequest' must not be a nil")
 	}
 
 	if len(goodCodes) < 1 {
-		return 0, nil, fmt.Errorf("please, specify more good codes")
+		return nil, fmt.Errorf("please, specify more good codes")
 	}
 
 	endpoint, er := r.makeEndpoint(q)
 	if er != nil {
-		return 0, nil, er
+		return nil, er
 	}
 
 	if allowed, ok := knownMethods[q.GetMethod()]; !ok || !allowed {
-		return 0, nil, fmt.Errorf("method '%s' is unknown or not allowed for requesting", q.GetMethod())
+		return nil, fmt.Errorf("method '%s' is unknown or not allowed for requesting", q.GetMethod())
 	}
 
 	var payload *bytes.Reader
@@ -66,6 +67,11 @@ func (r *defaultRequester) Do(q Request, goodCodes []int) (int, []byte, error) {
 		request.Header.Set(k, v)
 	}
 
+	// Apply context cookies;
+	for _, cookie := range r.extractCookies() {
+		request.AddCookie(&cookie)
+	}
+
 	// Apply request cookies;
 	for _, c := range q.GetCookies() {
 		request.AddCookie(&c)
@@ -74,12 +80,19 @@ func (r *defaultRequester) Do(q Request, goodCodes []int) (int, []byte, error) {
 	client := ProduceDefaultClient()
 	response, er := client.Do(request)
 	if er != nil {
-		return 0, nil, er
+		return nil, er
 	}
 
-	body, er := ExtractBody(response)
-	if er != nil {
-		return response.StatusCode, nil, er
+	res := newDefaultResponse(
+		response.StatusCode,
+		response.Header,
+		ExtractCookies(response),
+		nil)
+
+	if body, er := ExtractBody(response); er != nil {
+		return res, er
+	} else {
+		res.body = body
 	}
 
 	isGood := false
@@ -91,9 +104,16 @@ func (r *defaultRequester) Do(q Request, goodCodes []int) (int, []byte, error) {
 	}
 
 	if isGood {
-		return response.StatusCode, body, nil
+		cookies := res.Cookies()
+		if len(cookies) > 0 {
+			r.ctx = context.WithValue(r.ctx, DefaultRequesterCookies, cookies)
+		}
+
+		return res, nil
 	} else {
-		return response.StatusCode, nil, fmt.Errorf("got unexpected http status code %d: %s", response.StatusCode, body)
+		e := res.body
+		res.body = nil
+		return res, fmt.Errorf("got unexpected http status code %d: %s", response.StatusCode, e)
 	}
 }
 
@@ -120,4 +140,12 @@ func (r *defaultRequester) makeEndpoint(q Request) (*url.URL, error) {
 	}
 
 	return endpoint, nil
+}
+
+func (r *defaultRequester) extractCookies() []http.Cookie {
+	if c, ok := r.ctx.Value(DefaultRequesterCookies).([]http.Cookie); ok {
+		return c
+	}
+
+	return []http.Cookie{}
 }
