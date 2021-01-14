@@ -10,25 +10,24 @@ import (
 	"net/url"
 )
 
-const DefaultRequesterCookies = "DefaultRequester.Ctx.Cookies"
+const (
+	defaultRequesterCookies = "DefaultRequester.Ctx.Cookies"
+	defaultRequesterHost = "DefaultRequester.Ctx.Host"
+)
 
 type defaultRequester struct {
 	ctx   context.Context
-	host  string
 	debug bool
 }
 
 //goland:noinspection GoUnusedExportedFunction
 func NewDefaultRequester(ctx context.Context, host string, debug bool) *defaultRequester {
-	return &defaultRequester{
-		ctx:   ctx,
-		host:  host,
+	requester := &defaultRequester{
+		ctx:   context.WithValue(ctx, defaultRequesterHost, host),
 		debug: debug,
 	}
-}
 
-func (r *defaultRequester) SetHost(host string) {
-	r.host = host
+	return requester
 }
 
 func (r *defaultRequester) Do(q Request, goodCodes []int) (Response, error) {
@@ -68,7 +67,7 @@ func (r *defaultRequester) Do(q Request, goodCodes []int) (Response, error) {
 	}
 
 	// Apply context cookies;
-	for _, cookie := range r.extractCookies() {
+	for _, cookie := range r.getCookies() {
 		request.AddCookie(&cookie)
 	}
 
@@ -106,7 +105,7 @@ func (r *defaultRequester) Do(q Request, goodCodes []int) (Response, error) {
 	if isGood {
 		cookies := res.Cookies()
 		if len(cookies) > 0 {
-			r.ctx = context.WithValue(r.ctx, DefaultRequesterCookies, cookies)
+			r.ctx = context.WithValue(r.ctx, defaultRequesterCookies, cookies)
 		}
 
 		return res, nil
@@ -126,7 +125,17 @@ func (r *defaultRequester) DebugLog(s ...string) {
 }
 
 func (r *defaultRequester) makeEndpoint(q Request) (*url.URL, error) {
-	endpoint, er := url.Parse(fmt.Sprintf("%s/%s", r.host, q.GetEndpoint()))
+	absLink := q.GetEndpoint()
+	if !ContainsKnownScheme(q.GetEndpoint()) {
+		host := r.getHost()
+		if dString.IsEmpty(host) {
+			return nil, fmt.Errorf("could not makeEndpoint: host must not be an empty string")
+		}
+
+		absLink = fmt.Sprintf("%s/%s", host, q.GetEndpoint())
+	}
+
+	endpoint, er := url.Parse(absLink)
 	if er != nil {
 		return nil, fmt.Errorf("could not make new endpoint: %v", er)
 	}
@@ -142,10 +151,18 @@ func (r *defaultRequester) makeEndpoint(q Request) (*url.URL, error) {
 	return endpoint, nil
 }
 
-func (r *defaultRequester) extractCookies() []http.Cookie {
-	if c, ok := r.ctx.Value(DefaultRequesterCookies).([]http.Cookie); ok {
+func (r *defaultRequester) getCookies() []http.Cookie {
+	if c, ok := r.ctx.Value(defaultRequesterCookies).([]http.Cookie); ok {
 		return c
 	}
 
 	return []http.Cookie{}
+}
+
+func (r *defaultRequester) getHost() string {
+	if host, ok := r.ctx.Value(defaultRequesterHost).(string); ok {
+		return host
+	}
+
+	return ""
 }
