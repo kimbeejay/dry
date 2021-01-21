@@ -12,7 +12,7 @@ import (
 
 const (
 	defaultRequesterCookies = "DefaultRequester.Ctx.Cookies"
-	defaultRequesterHost = "DefaultRequester.Ctx.Host"
+	defaultRequesterHost    = "DefaultRequester.Ctx.Host"
 )
 
 type defaultRequester struct {
