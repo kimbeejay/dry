@@ -68,7 +68,7 @@ func (r *defaultRequester) Do(q Request, goodCodes []int) (Response, error) {
 	}
 
 	// Apply context cookies;
-	for _, cookie := range r.getCookies() {
+	for _, cookie := range r.Cookies() {
 		request.AddCookie(&cookie)
 	}
 
@@ -152,7 +152,7 @@ func (r *defaultRequester) makeEndpoint(q Request) (*url.URL, error) {
 	return endpoint, nil
 }
 
-func (r *defaultRequester) getCookies() []http.Cookie {
+func (r *defaultRequester) Cookies() []http.Cookie {
 	if c, ok := r.ctx.Value(defaultRequesterCookies).([]http.Cookie); ok {
 		return c
 	}
