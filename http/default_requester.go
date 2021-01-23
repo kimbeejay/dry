@@ -4,10 +4,11 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	"github.com/golang/glog"
-	dString "github.com/kimbeejay/dry/string"
 	"net/http"
 	"net/url"
+
+	"github.com/golang/glog"
+	dString "github.com/kimbeejay/dry/string"
 )
 
 const (

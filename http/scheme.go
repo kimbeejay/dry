@@ -1,9 +1,10 @@
 package http
 
 import (
-	dstring "github.com/kimbeejay/dry/string"
 	"net/url"
 	"strings"
+
+	dstring "github.com/kimbeejay/dry/string"
 )
 
 var knownSchemes = []string{
