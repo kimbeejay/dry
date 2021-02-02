@@ -7,5 +7,5 @@ type Requester interface {
 
 	DebugLog(...string)
 
-	makeEndpoint(Request) (*url.URL, error)
+	GetEndpoint(Request) (*url.URL, error)
 }

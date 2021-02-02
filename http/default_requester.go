@@ -40,12 +40,12 @@ func (r *defaultRequester) Do(q Request, goodCodes []int) (Response, error) {
 		return nil, fmt.Errorf("please, specify more good codes")
 	}
 
-	endpoint, er := r.makeEndpoint(q)
+	endpoint, er := r.GetEndpoint(q)
 	if er != nil {
 		return nil, er
 	}
 
-	if allowed, ok := knownMethods[q.GetMethod()]; !ok || !allowed {
+	if !IsKnownMethod(q.GetMethod()) {
 		return nil, fmt.Errorf("method '%s' is unknown or not allowed for requesting", q.GetMethod())
 	}
 
@@ -125,7 +125,7 @@ func (r *defaultRequester) DebugLog(s ...string) {
 	glog.Infoln(s)
 }
 
-func (r *defaultRequester) makeEndpoint(q Request) (*url.URL, error) {
+func (r *defaultRequester) GetEndpoint(q Request) (*url.URL, error) {
 	absLink := q.GetEndpoint()
 	if !ContainsKnownScheme(q.GetEndpoint()) {
 		host := r.getHost()
