@@ -11,7 +11,7 @@ type defaultResponse struct {
 	body       []byte
 }
 
-func newDefaultResponse(code int, h http.Header, c []http.Cookie, b []byte) *defaultResponse {
+func NewDefaultResponse(code int, h http.Header, c []http.Cookie, b []byte) *defaultResponse {
 	r := new(defaultResponse)
 	r.statusCode = code
 	r.headers = h

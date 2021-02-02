@@ -83,7 +83,7 @@ func (r *defaultRequester) Do(q Request, goodCodes []int) (Response, error) {
 		return nil, er
 	}
 
-	res := newDefaultResponse(
+	res := NewDefaultResponse(
 		response.StatusCode,
 		response.Header,
 		ExtractCookies(response),
