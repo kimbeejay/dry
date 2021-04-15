@@ -19,8 +19,8 @@ func ExtractBody(response *http.Response) ([]byte, error) {
 	//goland:noinspection ALL
 	defer response.Body.Close()
 
-	if response.ContentLength < 1 {
-		return []byte(""), nil
+	if response.ContentLength != -1 && response.ContentLength < 1 {
+		return []byte{}, nil
 	}
 
 	cEncoding := response.Header.Get(Header.ContentEncoding)
@@ -28,7 +28,7 @@ func ExtractBody(response *http.Response) ([]byte, error) {
 	reader := response.Body
 
 	if reader == nil {
-		return []byte(""), nil
+		return []byte{}, nil
 	}
 
 	//goland:noinspection ALL
