@@ -14,7 +14,7 @@ func StatusBelongs(status Status, code int) bool {
 	switch status {
 	case Information: // [100-199]
 		return code > 99 && code < 200
-	case Successful:  // [200-299]
+	case Successful: // [200-299]
 		return code > 199 && code < 300
 	case Redirection: // [300-399]
 		return code > 299 && code < 400

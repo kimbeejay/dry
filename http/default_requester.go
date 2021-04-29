@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"time"
 
 	"github.com/golang/glog"
 	dString "github.com/kimbeejay/dry/string"
@@ -17,15 +18,21 @@ const (
 )
 
 type defaultRequester struct {
-	ctx   context.Context
-	debug bool
+	ctx     context.Context
+	timeout time.Duration
+	debug   bool
 }
 
 //goland:noinspection GoUnusedExportedFunction
-func NewDefaultRequester(ctx context.Context, host string, debug bool) *defaultRequester {
+func NewDefaultRequester(ctx context.Context, host string, debug bool) Requester {
+	return NewDefaultRequesterWithTimeout(ctx, host, 0, debug)
+}
+
+func NewDefaultRequesterWithTimeout(ctx context.Context, host string, timeout time.Duration, debug bool) Requester {
 	requester := &defaultRequester{
-		ctx:   context.WithValue(ctx, defaultRequesterHost, host),
-		debug: debug,
+		ctx:     context.WithValue(ctx, defaultRequesterHost, host),
+		timeout: timeout,
+		debug:   debug,
 	}
 
 	return requester
@@ -78,6 +85,10 @@ func (r *defaultRequester) Do(q Request, goodCodes []int) (Response, error) {
 	}
 
 	client := ProduceDefaultClient()
+	if r.timeout > 0 {
+		client.Timeout = r.timeout
+	}
+
 	response, er := client.Do(request)
 	if er != nil {
 		return nil, er
