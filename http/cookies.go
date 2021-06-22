@@ -3,13 +3,13 @@ package http
 import "net/http"
 
 func ExtractCookies(response *http.Response) []http.Cookie {
-	cookies := make([]http.Cookie, 0)
 	if response == nil {
-		return cookies
+		return []http.Cookie{}
 	}
 
-	for _, c := range response.Cookies() {
-		cookies = append(cookies, http.Cookie{
+	cookies := make([]http.Cookie, len(response.Cookies()))
+	for i, c := range response.Cookies() {
+		cookies[i] = http.Cookie{
 			Name:       c.Name,
 			Value:      c.Value,
 			Path:       c.Path,
@@ -22,7 +22,7 @@ func ExtractCookies(response *http.Response) []http.Cookie {
 			SameSite:   c.SameSite,
 			Raw:        c.Raw,
 			Unparsed:   c.Unparsed,
-		})
+		}
 	}
 
 	return cookies
