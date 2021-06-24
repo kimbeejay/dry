@@ -6,6 +6,20 @@ import (
 	"strings"
 )
 
+var bools = map[string]bool{
+	"true": true,
+	"on":   true,
+	"1":    true,
+	"y":    true,
+	"yes":  true,
+
+	"false": false,
+	"off":   false,
+	"0":     false,
+	"n":     false,
+	"no":    false,
+}
+
 type Bool bool
 
 func (r *Bool) UnmarshalJSON(data []byte) error {
@@ -21,21 +35,8 @@ func (r *Bool) UnmarshalJSON(data []byte) error {
 	}
 
 	if s, ok := v.(string); ok {
-		s = strings.ToLower(s)
-
-		if s == "true" ||
-			s == "on" ||
-			s == "1" ||
-			s == "y" ||
-			s == "yes" {
-			*r = true
-			return nil
-		} else if s == "false" ||
-			s == "off" ||
-			s == "0" ||
-			s == "n" ||
-			s == "no" {
-			*r = false
+		if v, has := bools[strings.ToLower(s)]; has {
+			*r = Bool(v)
 			return nil
 		}
 	}
